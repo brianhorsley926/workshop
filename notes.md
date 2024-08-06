@@ -39,3 +39,23 @@ git remote add origin [clone url]
 
 ## Pushes the changes into the GitHub master repo
 git push -u origin main
+
+## Checks out (creates) a new branch 
+git checkout -b [branch_name]
+
+## Pushes the new branch commit to GitHub - This is where you make PR's + merge??
+git push -u origin main [branch_name]
+
+
+# 8/6 Notes
+- puts is a method that renders the contents of a variable and returns nil every time
+- We are able to check for gems that we can use in a ruby script using "gem list" in the cmd line
+  - To add an additional gem, use "gem install [gem_name]"
+  - e.g. "pry" is a gem that allows you to stop code at a specific line and interact with your script in the cmd line
+    - Use "binding.pry" after the line of code you would like to test
+    - Type "exit" in the cmd line to move past the binding.pry in the script
+    - To exit many bindings, use "exit!"
+- String conventions:
+  - Use '' for string-only variables e.g. 'string value'
+  - Use "" for string interpolation e.g. "This is my favorite #{variable_name}"
+

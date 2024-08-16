@@ -50,11 +50,16 @@ def deal_a_hand()
     for card in 1..deal_number_of_cards
         # Deals the initial hands for the player and Dealer
         player << deal_a_card()
-        # binding.pry # DEBUGGING
         puts "#{$player_name} has the #{player[card - 1][0]} of #{player[card - 1][1]}"
 
-        dealer << deal_a_card()
-        puts "#{$dealer_name} has the #{dealer[card-1][0]} of #{dealer[card - 1][1]}"
+        # Adding in logic to hide the Dealer's second card until their turn
+        if card == 1
+            dealer << deal_a_card()
+            puts "#{$dealer_name} has the #{dealer[card-1][0]} of #{dealer[card - 1][1]}"
+        else
+            dealer << deal_a_card()
+            puts "#{$dealer_name}'s second card is face down\n"
+        end
     end
 
     puts "\nIt's your turn #{$player_name}.\n"
@@ -102,7 +107,7 @@ def check_score(hand)
         number_of_aces -= 1
     end
 
-    return score # Without the return this didn't work??
+    score # ~Without the return this didn't work??~ It does work, check what this function had in terms of returns prior to current version
 end
 
 # Check if the player/dealer score is a bust
@@ -118,19 +123,6 @@ def reset_deck(cards)
         end
     end
 end
-
-# # Assigns 1 or 11 to an ace depending on the current score
-# def check_aces(score, hand)
-#     # This count method counts the number of elements in the cards array that are an 'ace'
-#     aces_in_hand = hand.count{|card| card[0] == 'ace'}
-#     while aces_in_hand > 0 && score > 21
-#         # Make the ace value 1 
-#         score -= 10
-#         # Now that the value is adjusted take away that ace from consideration
-#         aces_in_hand -= 1
-#     end
-#     score 
-# end
 
 # Game logic
 def game_of_blackjack()
@@ -152,13 +144,9 @@ def game_of_blackjack()
         # Dealer hand is Array[0] and Player hand is Array[1]
         initial_hands = deal_a_hand()
 
-        # binding.pry # DEBUGGING
         # Initial hand returns multi-dimensional array - check for any aces that cause a bust for dealer/player
         player_score = check_score(initial_hands[1])
-        # player_score = check_aces(player_score, initial_hands[1])
-
         dealer_score = check_score(initial_hands[0])
-        # dealer_score = check_aces(dealer_score, initial_hands[0])
         
         # Check if anyone hit blackjack from the initial hand, prioritizing the player
         if player_score == 21
@@ -173,7 +161,6 @@ def game_of_blackjack()
         end
 
         # Player's turn
-        puts "It's #{$player_name}'s turn."
         while true
             puts 'Will you hit or stand?'
             player_choice = gets.chomp
@@ -189,8 +176,9 @@ def game_of_blackjack()
                 puts "#{next_card[0]} of #{next_card[1]}\n"
 
                 initial_hands[1] << next_card
+
                 player_score = check_score(initial_hands[1])
-                # player_score = check_aces(player_score, initial_hands[1])
+
                 if bust?(player_score)
                     puts "You bust with a score of #{player_score}. House wins!"
                     return
@@ -202,9 +190,11 @@ def game_of_blackjack()
         end
 
         # Dealer's turn
-        puts "It's the #{$dealer_name}'s turn."
+        puts "It's the #{$dealer_name}'s turn.\n"
+        puts "The #{$dealer_name}'s hand is the #{initial_hands[0][0][0]} of #{initial_hands[0][0][1]} and the #{initial_hands[0][1][0]} of #{initial_hands[0][1][1]}\n"
 
         # Dealer hits unless score is 17>
+        puts "The #{$dealer_name} will hit until their score is 17 or higher\n"
         while dealer_score < 17
             next_card = deal_a_card()
             puts "#{next_card[0]} of #{next_card[1]}\n"

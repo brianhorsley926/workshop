@@ -1,4 +1,20 @@
 =begin
+IDEA:
+- Implement simple card counting to visualize potential benefits
+- 2-6 : Count += 1
+- 7-9 : Count += 0
+- 10-Ace : Count -= 1
+
+Positive count means the player has the advantage
+Negative count means the house has the advantage
+
+Multi-deck game : True count = count / # of decks
+
+Bet more on positive counts and bet less on negative/neutral counts
+=end
+
+
+=begin
 1. Create a ruby file to create the basics of blackjack
 2. On start, it asks for your name. It should store this and output it at the end of the game.
 3. The game should inform you each turn in next what is happening
@@ -156,7 +172,7 @@ def game_of_blackjack()
             puts "#{$dealer_name} hits blackjack! House wins."
             return
         elsif player_score == 21 && dealer_score == 21
-            puts "It's a tie!"
+            puts "The #{$dealer_name} and #{$player_name} both have 21. Push."
             return
         end
 
@@ -215,7 +231,7 @@ def game_of_blackjack()
         elsif player_score > dealer_score
             puts "#{$player_name} wins!"
         else
-            puts "It's a tie!"
+            puts "Push"
         end
         return
     end

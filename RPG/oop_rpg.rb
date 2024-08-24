@@ -14,9 +14,9 @@ How do I use the Hero and Monster classes? Initial thought is to see how scope b
 
 
 Game - starting with just one monster
-has attacking mechanism while hero and monster has 
-- Has a hero defending a castle against monsters 
-    - w/ some amount of HP?
+Hero will always win against monster as they have no HP and monsters don't attack yet
+- Has a hero defeating 1 monster
+    - w/ some amount of HP? - No hero HP at first
 - Hero attacks by user_input and the Hero can only use their special_attack 3 times
 - The Game is over when either the monsters are all defeated or the Hero is killed
 - Something like, while Hero.health_points != 0 && MonsterS.summed_health_points != 0 ...
@@ -45,15 +45,49 @@ class Game
         @number_of_monsters = number_of_monsters
         puts "#{@hero.name} the Hero, defeat the monster(s) to protect the castle.\nEnter 1 to perform a basic attack or 2 to perform your special attack. But remember, you can only use it 3 times."
     end
+
+    def hero_defeats_monsters
+        sleep 1
+        puts "\n#{@monster.sound}"
+        puts "The #{@monster.name} (#{@monster.health_points} HP) is here, defeat them quick (1=basic attack & 2=special_atttack)"
+        while @monster.health_points > 0
+            attack_input = gets.chomp 
+            while attack_input != '1' && attack_input != '2'
+                attack_input = gets.chomp 
+            end
+
+            sleep 1
+
+            if attack_input == '1'
+                damage = @hero.basic_attack
+                puts "#{@hero.name} used a basic attack, it dealt #{damage} damage"
+                @monster.health_points -= damage
+                puts "The #{@monster.name} now has #{@monster.health_points} HP left."
+                sleep 1
+            else
+                damage = @hero.special_attack
+                if damage > 0
+                    puts "#{@hero.name} used his special attack, it dealt #{damage} damage"
+                    @monster.health_points -= damage
+                    puts "The #{@monster.name} now has #{@monster.health_points} HP left."
+                    sleep 1
+                else
+                    puts "You've run out of mana! Basic attacks will have to do..."
+                    sleep 1
+                end
+            end
+        end
+
+        puts "You've deafeated the #{@monster.name}, #{@hero.name}. END...?"
+    end
 end
 
 class Hero 
     attr_accessor :name, :special_attack_limit
-    
+
     def initialize(name, special_attack_limit=3)
         @name = name
         @special_attack_limit = special_attack_limit
-        puts "I'm the Hero, #{@name}"
     end
 
     def basic_attack
@@ -73,12 +107,12 @@ class Hero
 end
 
 class Monster
-    attr_accessor :health_points, :name
+    attr_accessor :health_points, :name, :sound
 
-    def initialize(health_points=Random.new.rand(10..50), name='Goblin')
+    def initialize(health_points=Random.new.rand(10..50), name='Goblin', sound='Raauughaughhhs')
         @health_points = health_points
         @name = name
-        puts "Raauughaughhhs"
+        @sound = sound
     end
 end
 
@@ -89,4 +123,4 @@ hero = Hero.new(hero_name)
 monster = Monster.new
 
 game = Game.new(hero, monster)
-binding.pry
+game.hero_defeats_monsters

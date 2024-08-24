@@ -7,11 +7,10 @@ Lab Assignment: Using classes and OOP programming
 - Monsters can generate with random HP ranging from 10-50 hp
 
 
-
+=====VERSION 1=====
 Define what 'the game' is
 How do I use the Hero and Monster classes? Initial thought is to see how scope between separate classes works
-    Maybe Inheritance?
-
+    Maybe Inheritance? - Can pass classes as arguments! Any issue with this?    
 
 Game - starting with just one monster
 Hero will always win against monster as they have no HP and monsters don't attack yet
@@ -31,18 +30,34 @@ Hero
 Monster
 - Some HP
 - Basic attack
+===================
+
+
+=====VERSION 2=====
+Updates to make
+- Add turn based attacks 
+- Add logic to handle multiple monsters
+    - Randomize the subset of monsters that attack during their turn. I.e. 3 monsters - 1, 2, or all 3 might attack on the Monster turn?
+- Add a way to generate different types of monsters? File I/O with list of monster names/sounds/hp ranges
+- Give the hero HP and add logic to handle the upset (hero dies)
+    - File I/O, give the user the ability to choose their Hero Type/Special Attack combo
+        - Mage/Fireball - Warrior/Execute - Paladin/Holy Strike - Assassin/Backstab etc...
+
+===================
+
+
 =end
 
 require 'pry'
 
 class Game
-    attr_accessor :turn_number, :number_of_monsters
+    attr_accessor :turn_number
 
-    def initialize(hero, monster, turn_number=1, number_of_monsters=1)
+    # The game will take a Hero, Monster 
+    def initialize(hero, monster)
         @hero = hero
         @monster = monster
-        @turn_number = turn_number
-        @number_of_monsters = number_of_monsters
+        @turn_number = 1
         puts "#{@hero.name} the Hero, defeat the monster(s) to protect the castle.\nEnter 1 to perform a basic attack or 2 to perform your special attack. But remember, you can only use it 3 times."
     end
 
@@ -50,8 +65,11 @@ class Game
         sleep 1
         puts "\n#{@monster.sound}"
         puts "The #{@monster.name} (#{@monster.health_points} HP) is here, defeat them quick (1=basic attack & 2=special_atttack)"
+
+        # Game continues until the monster is defeated
         while @monster.health_points > 0
             attack_input = gets.chomp 
+            # Only accept 1 or 2 as the user input
             while attack_input != '1' && attack_input != '2'
                 attack_input = gets.chomp 
             end
@@ -90,11 +108,13 @@ class Hero
         @special_attack_limit = special_attack_limit
     end
 
+    # Return the damage that the Hero's basic attack does 10-20
     def basic_attack
         rng = Random.new 
         return rng.rand(10..20)
     end
 
+    # Return the damage that the Hero's special attack does 100-200
     def special_attack 
         rng = Random.new
         if @special_attack_limit > 0
@@ -107,9 +127,10 @@ class Hero
 end
 
 class Monster
-    attr_accessor :health_points, :name, :sound
+    attr_accessor :health_points, :name, :sound, :number_of_monsters
 
-    def initialize(health_points=Random.new.rand(10..50), name='Goblin', sound='Raauughaughhhs')
+    # Initialize the Monster with HP between 10-50, the number of monsters will be handled here (?)
+    def initialize(health_points=Random.new.rand(10..50), name='Goblin', sound='Raauughaughhhs', number_of_monsters=1)
         @health_points = health_points
         @name = name
         @sound = sound
@@ -118,9 +139,7 @@ end
 
 puts 'Hero, what is your name?'
 hero_name = gets.chomp 
-
 hero = Hero.new(hero_name)
 monster = Monster.new
-
 game = Game.new(hero, monster)
 game.hero_defeats_monsters

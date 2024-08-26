@@ -50,7 +50,7 @@ $player_name = gets.chomp
 
 ################################################################################
 
-puts "Thanks #{$player_name}.\n"
+puts "Thanks #{$player_name}!\n"
 
 # Uses the Array#shuffle method to jumble up the cards
 def shuffle()

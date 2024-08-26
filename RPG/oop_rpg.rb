@@ -35,8 +35,8 @@ Monster
 
 =====VERSION 2=====
 Updates to make
-- Add turn based attacks 
-- Add logic to handle multiple monsters
+- Add turn based attacks - DONE
+- Add logic to handle multiple monsters - Kinda? Need to rework Monster logic
     - Randomize the subset of monsters that attack during their turn. I.e. 3 monsters - 1, 2, or all 3 might attack on the Monster turn?
 - Add a way to generate different types of monsters? File I/O with list of monster names/sounds/hp ranges
 - Give the hero HP and add logic to handle the upset (hero dies)
@@ -164,6 +164,10 @@ class Game
             end
         end
     end
+
+    def show_score_card
+        puts "\nScorecard:\nThe battle took #{@turn_number} turn(s).\n#{@monster.number_of_monsters} monster(s) defeated."
+    end
 end
 
 class Hero 
@@ -232,3 +236,4 @@ monster = Monster.new(monster_health, num_monsters)
 
 game = Game.new(hero, monster)
 game.hero_vs_monsters
+game.show_score_card

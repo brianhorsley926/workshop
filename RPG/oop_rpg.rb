@@ -61,6 +61,7 @@ class Game
         puts "#{@hero.name} the Hero, defeat the monster(s) to protect the castle.\nEnter 1 to perform a basic attack or 2 to perform your special attack. But remember, you can only use it 3 times."
     end
 
+    # Version 1 Gameplay - Hero always wins and only one monster accounted for. Might break with some of the version 2 changes
     def hero_defeats_monsters
         sleep 1
         puts "\n#{@monster.sound}"
@@ -192,6 +193,9 @@ class Hero
     end
 end
 
+# Bad decision to account for number of monsters in the Monster class. Should have generate_monster method in Game class 
+# and use array/hash to hold the HP and name/sound etc.
+# Hero special attack could apply damage to each monster (SpecATKdmg / # Monster) and basic attack hits lowest hp target always
 class Monster
     attr_accessor :health_points, :name, :sound, :number_of_monsters
     # Initialize the Monster with HP between 10-50, the number of monsters will be handled here (?)
@@ -223,7 +227,7 @@ hero = Hero.new(hero_name)
 
 rng = Random.new
 num_monsters = rng.rand(1..10)
-monster_health = rng.rand(10..50)
+monster_health = rng.rand(50..100)
 monster = Monster.new(monster_health, num_monsters)
 
 game = Game.new(hero, monster)

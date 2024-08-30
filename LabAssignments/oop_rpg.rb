@@ -45,6 +45,11 @@ Updates to make
 
 ===================
 
+method to accept user input and show all health
+
+Should separate the classes into their own files and `require` them in this file
+
+Scope this out more - 
 
 =end
 
@@ -54,13 +59,14 @@ class Game
     attr_accessor :turn_number
 
     # The game will take a Hero, Monster 
-    def initialize(hero, monster)
-        @hero = hero
-        @monster = monster
+    def initialize()
+        @hero = Hero.new('Arthur') # Instantiate class in the Game. class are blueprints we are 'creating' this and teaching the code what it is - can call like other data types
+        @number_of_monsters = []
         @turn_number = 1
         puts "#{@hero.name} the Hero, defeat the monster(s) to protect the castle.\nEnter 1 to perform a basic attack or 2 to perform your special attack. But remember, you can only use it 3 times."
     end
 
+=begin
     # Version 1 Gameplay - Hero always wins and only one monster accounted for. Might break with some of the version 2 changes
     def hero_defeats_monsters
         sleep 1
@@ -99,16 +105,16 @@ class Game
 
         puts "You've deafeated the #{@monster.name}, #{@hero.name}. END...?"
     end
-
+=end
     # Version 2 gameplay
     def hero_vs_monsters
+        generate_monsters(horde_size)
+        monster_health = monster_health_pool
         # Hero initiates the fight everytime
         sleep 1
-        puts "\n#{@monster.sound}"
-        puts "#{@monster.number_of_monsters} #{@monster.name}(s) (#{@monster.health_points / @monster.number_of_monsters} HP each) showed up, defeat them quickly (1=basic attack & 2=special_atttack)"
-
+        monsters_appear(monster_health)
         # Game continues until the monster is defeated
-        while @monster.health_points > 0 && @hero.health_points > 0
+        while monster_health > 0 && @hero.health_points > 0
             puts "Turn # #{@turn_number}"
             sleep 1
             if @turn_number % 2 > 0 # Odd - Hero's turn // Even - Monster's turn
@@ -120,26 +126,26 @@ class Game
 
                 if attack_input == '1'
                     damage = @hero.basic_attack
-                    puts "#{@hero.name} used a basic attack, it dealt #{damage} damage"
-                    @monster.health_points -= damage
-                    if @monster.health_points <= 0
+                    @hero.show_attack(attack_input, damage)
+                    monster_health -= damage
+                    if monster_health <= 0
                         puts "You have defeated them #{@hero.name}. You win!"
                         return
                     else
-                        puts "The #{@monster.number_of_monsters} #{@monster.name}(s) with #{@monster.health_points} HP left are preparing to attack."
-                        @turn_number += 1
+                        show_monster_stats(monster_health)
+                        @turn_number += 1 # <- simple method as well
                         sleep 1
                     end
                 else
                     damage = @hero.special_attack
                     if damage > 0
-                        puts "#{@hero.name} used his special attack, it dealt #{damage} damage"
-                        @monster.health_points -= damage
-                        if @monster.health_points <= 0
+                        @hero.show_attack(attack_input, damage)
+                        monster_health -= damage
+                        if monster_health <= 0
                             puts "You have defeated them #{@hero.name}. You win!"
                             return
                         else
-                            puts "The #{@monster.number_of_monsters} #{@monster.name}(s) with #{@monster.health_points} HP left are preparing to attack."
+                            show_monster_stats(monster_health)
                             @turn_number += 1
                             sleep 1
                         end
@@ -151,7 +157,11 @@ class Game
                 end
             else
                 # Monster's turn
-                monster_damage = @monster.monster_attacks
+                monster_damage = 0
+                for m in (0...@number_of_monsters.length)
+                    monster_damage += @number_of_monsters[m].monster_attack
+                end
+                puts "You were dealth #{monster_damage} damage!"
                 @hero.health_points -= monster_damage
                 if @hero.health_points <= 0
                     puts "You have been defeated!"
@@ -165,8 +175,41 @@ class Game
         end
     end
 
+    def horde_size
+        rng = Random.new 
+        rng.rand(3..10)
+    end
+
+    def generate_monsters(num_monster)
+        rng = Random.new
+        for m in 1..num_monster do 
+            @number_of_monsters << Monster.new(rng.rand(25..50))
+        end
+    end
+
+    def monster_health_pool
+        health_amount = 0
+        len = @number_of_monsters.length - 1
+        if len < 1 
+            return 0
+        else
+            for m in (1..len) do 
+                health_amount += @number_of_monsters[m].health_points
+            end
+        end
+        health_amount
+    end
+
+    def show_monster_stats(monster_health)
+        puts "The #{@number_of_monsters.length} #{@number_of_monsters[0].name}(s) with #{monster_health} HP left are preparing to attack."
+    end
+
+    def monsters_appear(monster_health)
+        puts "#{@number_of_monsters.length} #{@number_of_monsters[0].name}(s) (#{monster_health / @number_of_monsters.length} HP each) showed up, defeat them quickly (1=basic attack & 2=special_atttack)"
+    end
+
     def show_score_card
-        puts "\nScorecard:\nThe battle took #{@turn_number} turn(s).\n#{@monster.number_of_monsters} monster(s) defeated."
+        puts "\nScorecard:\nThe battle took #{@turn_number} turn(s).\n#{@number_of_monsters.length} monster(s) defeated."
     end
 end
 
@@ -182,7 +225,7 @@ class Hero
     # Return the damage that the Hero's basic attack does 10-20
     def basic_attack
         rng = Random.new 
-        return rng.rand(10..20)
+        rng.rand(10..20)
     end
 
     # Return the damage that the Hero's special attack does 100-200
@@ -195,45 +238,38 @@ class Hero
             return 0
         end
     end
+
+    def show_attack(attack_num, damage)
+        if attack_num == '1'
+            puts "#{@name} used a basic attack, it dealt #{damage} damage"
+        else
+            puts "#{@name} used his special attack, it dealt #{damage} damage"
+        end
+    end
 end
 
 # Bad decision to account for number of monsters in the Monster class. Should have generate_monster method in Game class 
 # and use array/hash to hold the HP and name/sound etc.
 # Hero special attack could apply damage to each monster (SpecATKdmg / # Monster) and basic attack hits lowest hp target always
 class Monster
-    attr_accessor :health_points, :name, :sound, :number_of_monsters
+    attr_accessor :health_points, :name, :sound
+
     # Initialize the Monster with HP between 10-50, the number of monsters will be handled here (?)
-    def initialize(health_points, name='Goblin', sound='Raauughaughhhs', number_of_monsters)
+    def initialize(health_points, name='Goblin', sound='Raauughaughhhs')
         # Going to start with all monsters having the same HP for simplicity. I think to make them all random, I'll change healthpoints from being an argument
         # to being initialized within the Class
-        @health_points = health_points * number_of_monsters
+        @health_points = health_points
         @name = name
         @sound = sound
-        @number_of_monsters = number_of_monsters
     end
 
     # Monsters can now attack, handles multiple monsters, 1 or many monsters can attack the hero during their turn
-    def monster_attacks
+    def monster_attack
         rng = Random.new 
-        number_monster_attack = rng.rand(1..@number_of_monsters)
-        damage = 0
-        for monster in 1..number_monster_attack
-            damage += rng.rand(5..10)
-        end
-        puts "#{number_monster_attack} #{@name} attacks! #{damage} damage was dealt to the Hero."
-        return damage
+        rng.rand(5..10)
     end
 end
 
-puts 'Hero, what is your name?'
-hero_name = gets.chomp 
-hero = Hero.new(hero_name)
-
-rng = Random.new
-num_monsters = rng.rand(1..10)
-monster_health = rng.rand(50..100)
-monster = Monster.new(monster_health, num_monsters)
-
-game = Game.new(hero, monster)
+game = Game.new
 game.hero_vs_monsters
 game.show_score_card

@@ -58,7 +58,7 @@ require 'pry'
 class Game
   attr_accessor :turn_number
 
-    # The game will take a Hero, Monster 
+  # The game will take a Hero, Monster 
   def initialize()
     @hero = Hero.new('Arthur') # Instantiate class in the Game. class are blueprints we are 'creating' this and teaching the code what it is - can call like other data types
     @number_of_monsters = []
@@ -66,47 +66,7 @@ class Game
     puts "#{@hero.name} the Hero, defeat the monster(s) to protect the castle.\nEnter 1 to perform a basic attack or 2 to perform your special attack. But remember, you can only use it 3 times."
   end
 
-=begin
-    # Version 1 Gameplay - Hero always wins and only one monster accounted for. Might break with some of the version 2 changes
-    def hero_defeats_monsters
-        sleep 1
-        puts "\n#{@monster.sound}"
-        puts "The #{@monster.name} (#{@monster.health_points} HP) is here, defeat them quick (1=basic attack & 2=special_atttack)"
-
-        # Game continues until the monster is defeated
-        while @monster.health_points > 0
-            attack_input = gets.chomp 
-            # Only accept 1 or 2 as the user input
-            while attack_input != '1' && attack_input != '2'
-                attack_input = gets.chomp 
-            end
-
-            sleep 1
-
-            if attack_input == '1'
-                damage = @hero.basic_attack
-                puts "#{@hero.name} used a basic attack, it dealt #{damage} damage"
-                @monster.health_points -= damage
-                puts "The #{@monster.name} now has #{@monster.health_points} HP left."
-                sleep 1
-            else
-                damage = @hero.special_attack
-                if damage > 0
-                    puts "#{@hero.name} used his special attack, it dealt #{damage} damage"
-                    @monster.health_points -= damage
-                    puts "The #{@monster.name} now has #{@monster.health_points} HP left."
-                    sleep 1
-                else
-                    puts "You've run out of mana! Basic attacks will have to do..."
-                    sleep 1
-                end
-            end
-        end
-
-        puts "You've deafeated the #{@monster.name}, #{@hero.name}. END...?"
-    end
-=end
-    # Version 2 gameplay
+  # Version 2 gameplay
   def hero_vs_monsters
     generate_monsters(horde_size)
     monster_health = monster_health_pool
@@ -123,55 +83,64 @@ class Game
         while attack_input != '1' && attack_input != '2'
           attack_input = gets.chomp 
         end
+        monster_health = heros_turn(attack_input)
+      else
+        monsters_turn
+      end
+    end
+  end
 
-        if attack_input == '1'
-          damage = @hero.basic_attack
-          @hero.show_attack(attack_input, damage)
-          monster_health -= damage
-          if monster_health <= 0
-            puts "You have defeated them #{@hero.name}. You win!"
-            return
-          else
-            show_monster_stats(monster_health)
-            @turn_number += 1 # <- simple method as well
-            sleep 1
-          end
+  def update_turn
+    @turn_number += 1
+    sleep 1
+  end
+
+  def heros_turn(attack_input)
+    if attack_input == '1'
+      damage = @hero.basic_attack / @number_of_monsters.length
+      @hero.show_attack(attack_input, damage)
+      monster_health = monster_health_pool(damage)
+      if monster_health <= 0
+        puts "You have defeated them #{@hero.name}. You win!"
+        return monster_health
+      else
+        show_monster_stats(monster_health)
+        update_turn
+      end
+    else
+      damage = @hero.special_attack / @number_of_monsters.length
+      if damage > 0
+        @hero.show_attack(attack_input, damage)
+        monster_health = monster_health_pool(damage)
+        if monster_health <= 0
+          puts "You have defeated them #{@hero.name}. You win!"
+          return monster_health
         else
-          damage = @hero.special_attack
-          if damage > 0
-            @hero.show_attack(attack_input, damage)
-            monster_health -= damage
-            if monster_health <= 0
-              puts "You have defeated them #{@hero.name}. You win!"
-              return
-            else
-              show_monster_stats(monster_health)
-              @turn_number += 1
-              sleep 1
-            end
-          else
-            # Basically a warning, won't skip the Hero's turn if this happens
-            puts "You've run out of mana! Basic attacks will have to do..."
-            sleep 1
-          end
+          show_monster_stats(monster_health)
+          update_turn
         end
       else
-        # Monster's turn
-        monster_damage = 0
-        for m in (0...@number_of_monsters.length)
-          monster_damage += @number_of_monsters[m].monster_attack
-        end
-        puts "You were dealth #{monster_damage} damage!"
-        @hero.health_points -= monster_damage
-        if @hero.health_points <= 0
-          puts "You have been defeated!"
-          return
-        else
-          puts "You now have #{@hero.health_points} HP left."
-          @turn_number += 1
-          sleep 1
-        end
+        puts "You've run out of mana! Basic attacks will have to do..."
+        sleep 1
       end
+    end
+    monster_health
+  end
+
+  def monsters_turn
+    # Monster's turn
+    monster_damage = 0
+    for m in (0...@number_of_monsters.length)
+      monster_damage += @number_of_monsters[m].monster_attack
+    end
+    puts "You were dealt #{monster_damage} damage!"
+    @hero.health_points -= monster_damage
+    if @hero.health_points <= 0
+      puts "You have been defeated!"
+      return
+    else
+      puts "You now have #{@hero.health_points} HP left."
+      update_turn
     end
   end
 
@@ -187,17 +156,14 @@ class Game
     end
   end
 
-  def monster_health_pool
-    health_amount = 0
-    len = @number_of_monsters.length - 1
-    if len < 1 
-      return 0
-    else
-      for m in (1..len) do 
-        health_amount += @number_of_monsters[m].health_points
-      end
+  def monster_health_pool(damage=0)
+    @number_of_monsters.each do |monster|
+      monster.health_points -= damage
     end
-    health_amount
+  
+    @number_of_monsters.reject! { |monster| monster.health_points <= 0 }
+    total_health = @number_of_monsters.sum(&:health_points)
+    total_health.nil? ? 0 : total_health
   end
 
   def show_monster_stats(monster_health)
@@ -206,10 +172,6 @@ class Game
 
   def monsters_appear(monster_health)
     puts "#{@number_of_monsters.length} #{@number_of_monsters[0].name}(s) (#{monster_health / @number_of_monsters.length} HP each) showed up, defeat them quickly (1=basic attack & 2=special_atttack)"
-  end
-
-  def show_score_card
-    puts "\nScorecard:\nThe battle took #{@turn_number} turn(s).\n#{@number_of_monsters.length} monster(s) defeated."
   end
 end
 
@@ -241,9 +203,9 @@ class Hero
 
   def show_attack(attack_num, damage)
     if attack_num == '1'
-      puts "#{@name} used a basic attack, it dealt #{damage} damage"
+      puts "#{@name} used a basic attack, it dealt #{damage} damage to each monster"
     else
-      puts "#{@name} used his special attack, it dealt #{damage} damage"
+      puts "#{@name} used his special attack, it dealt #{damage} damage to each monster"
     end
   end
 end
@@ -272,4 +234,3 @@ end
 
 game = Game.new
 game.hero_vs_monsters
-game.show_score_card
